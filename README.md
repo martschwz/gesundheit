@@ -33,9 +33,9 @@ Hinweis: GitHub Pages geht mit dem kostenlosen GitHub-Konto nur bei **öffentlic
 ### 5. KI-Schätzung
 1. In Supabase links **Edge Functions** → **Deploy a new function** → **Via Editor**.
 2. Name: `estimate-meal`. Den Inhalt von [`supabase/functions/estimate-meal/index.ts`](supabase/functions/estimate-meal/index.ts) einfügen und **Deploy** klicken.
-3. Unter **Edge Functions → Secrets** ein Secret anlegen: Name `ANTHROPIC_API_KEY`, Wert = dein Schlüssel `sk-ant-…` (derselbe wie bei der Lernapp geht).
+3. Unter **Edge Functions → Secrets** ein Secret anlegen: Name `ANTHROPIC_API_KEY`, Wert = dein Schlüssel `sk-ant-…` (derselbe Schlüssel kann auch für die Lernapp genutzt werden).
 
-Kosten: etwa 1–3 Cent pro Foto. Ein Ausgabenlimit in der Anthropic-Konsole verhindert Überraschungen.
+Die App nutzt das günstige Modell Claude Haiku: weniger als 0,1 Cent pro Foto, also für 5 $ Guthaben mehrere tausend Fotos. Ein Ausgabenlimit in der Anthropic-Konsole verhindert Überraschungen.
 
 ## Entwicklung
 

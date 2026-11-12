@@ -86,12 +86,12 @@ Deno.serve(async (req) => {
   const client = new Anthropic({ apiKey });
   try {
     const response = await client.beta.messages.create({
-      model: "claude-opus-5-5",
+      // Haiku: sehr günstig (unter 0,1 Cent pro Foto) und für Nährwert-Schätzungen ausreichend.
+      // Für genauere Schätzungen hier "claude-sonnet-5-5" oder "claude-opus-5-5" eintragen.
+      model: "claude-haiku-5-5",
       max_tokens: 16000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
       system: SYSTEM,
-      output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
+      output_config: { effort: "medium", format: { type: "json_schema", schema: SCHEMA } },
       messages: [{ role: "user", content }],
     });
     if (response.stop_reason === "refusal") return json({ error: "refused" }, 422);
