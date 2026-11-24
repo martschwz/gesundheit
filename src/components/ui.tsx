@@ -48,7 +48,7 @@ export function Ring({ eaten, goal }: { eaten: number; goal: number }) {
     <div className="ring" role="img" aria-label={`${fmt(eaten)} von ${fmt(goal)} Kalorien gegessen`}>
       <svg viewBox="0 0 120 120">
         <circle cx="60" cy="60" r={r} className="track" />
-        <circle cx="60" cy="60" r={r} className={`val ${over ? "over" : ""}`} strokeDasharray={`${share * c} ${c}`} transform="rotate(-90 60 60)" />
+        {share > 0 && <circle cx="60" cy="60" r={r} className={`val ${over ? "over" : ""}`} strokeDasharray={`${share * c} ${c}`} transform="rotate(-90 60 60)" />}
       </svg>
       <div className="ring-label">
         <b>{fmt(Math.abs(left))}</b>

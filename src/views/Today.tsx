@@ -6,11 +6,13 @@ import { currentKg, weightPoints } from "../lib/selectors";
 import type { Meal, Settings } from "../lib/types";
 import type { Go } from "../App";
 import { Bar, Confirm, Ring, toast } from "../components/ui";
+import { WaterCard } from "./Values";
 
 export function Today({ day, setDay, settings, go }: { day: string; setDay: (d: string) => void; settings: Settings; go: Go }) {
   const allMeals = useStore((s) => s.data.meals);
   const weights = useStore((s) => s.data.weights);
   const favorites = useStore((s) => s.data.favorites);
+  const outdated = useStore((s) => s.schemaOutdated);
   const meals = allMeals.filter((m) => m.day === day).sort((a, b) => a.created_at.localeCompare(b.created_at));
   const kg = currentKg(weightPoints(weights), settings);
   const g = goals(settings, kg);
@@ -49,6 +51,7 @@ export function Today({ day, setDay, settings, go }: { day: string; setDay: (d: 
       </section>
 
       {isToday && !weights.some((w) => w.day === today) && <QuickWeight />}
+      {!outdated && <WaterCard day={day} settings={settings} compact />}
 
       {SLOTS.map(([slot, label]) => {
         const list = meals.filter((m) => m.slot === slot);

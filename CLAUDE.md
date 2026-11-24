@@ -10,14 +10,17 @@ Persönliche Gesundheits- und Abnehm-App für eine Person (ein Login). Der Nutze
 - Handy des Nutzers: Xiaomi (Android) mit Honor Watch GS Pro über Huawei Health. Uhr-Daten vorerst von Hand; Huawei bietet Web-Apps keinen direkten Zugriff.
 
 ## Daten (`supabase/migrations/`)
-`settings` (eine Zeile: Geschlecht, Geburtsjahr, Größe, Start-/Zielgewicht, Aktivitätsfaktor, Tempo kg/Woche, optionale eigene Ziele), `weights` (ein Wert pro Tag), `meals` (Mahlzeit mit `items` als JSON: name, amount, kcal, protein, carbs, fat; Summen zusätzlich als Spalten), `favorites`. Alle Zeilen haben `owner`.
+`settings` (eine Zeile: Geschlecht, Geburtsjahr, Größe, Start-/Zielgewicht, Aktivitätsfaktor, Tempo kg/Woche, optionale eigene Ziele), `weights` (ein Wert pro Tag), `meals` (Mahlzeit mit `items` als JSON: name, amount, kcal, protein, carbs, fat; Summen zusätzlich als Spalten), `favorites`. Migration 0002: `daily` (owner+day: water_ml, steps, sleep_hours, sleep_quality 1–5), `measurements` (id, kind `bp`/`glucose`/`waist`/`belly`/`hip`/`bodyfat`, day, time, v1/v2/v3 – Blutdruck: oben/unten/Puls; Blutzucker mg/dl mit `tag` nuechtern/vor/nach/sonst), `labs` (day, name, value, unit). Alle Zeilen haben `owner`.
 Schemaänderungen immer als neue Datei `supabase/migrations/000N_….sql` (idempotent), neue Tabellen in `OPTIONAL_TABLES` (store.ts) aufnehmen und dem Nutzer sagen, dass er sie im SQL Editor ausführen muss.
 
 ## Wichtige Dateien
 - `src/lib/store.ts` – lädt alle Daten, Cache in localStorage, Outbox-Warteschlange für Offline-Änderungen (`upsert`, `remove`). `owner` immer per `ownerId()` setzen.
 - `src/lib/calc.ts` – Grundumsatz (Mifflin-St Jeor), Kalorienziel (Tempo × 7000 kcal/kg, Untergrenze 1500 Mann / 1200 Frau), Eiweißziel (1,6 g × min(Gewicht, Ziel+10)), Gewichtstrend (exponentielle Glättung 10 %/Tag), Prognose (Regression über 28 Tage).
 - `src/lib/ai.ts` – Foto verkleinern und Edge Function aufrufen.
-- `src/views/Today.tsx` (Kalorienring, Mahlzeiten), `MealEditor.tsx` (Foto/Text/Favorit/Hand → prüfen → speichern), `Weight.tsx` (Eingabe, Diagramm, Prognose), `Me.tsx` (Profil, Ziele, Abmelden).
+- `src/lib/health.ts` – Ampel-Einordnung (Blutdruck mit Heim-Grenzen 135/85, Blutzucker, Taille/Größe, Schlaf, Laborwerte-Liste `LABS`), Wasserziel, Schrittziel.
+- `src/components/Charts.tsx` – `LineChart` (mehrere Reihen, Richtwert-Linien), `BarChart`, `Pill`.
+- `src/views/Values.tsx` – Seite „Werte“: Alltag (Wasser/Schritte/Schlaf), Blutdruck, Blutzucker, Maße, Labor; `WaterCard` auch auf „Heute“.
+- `src/views/Today.tsx` (Kalorienring, Mahlzeiten, Wasser), `MealEditor.tsx` (Foto/Text/Favorit/Hand → prüfen → speichern), `Weight.tsx` (Eingabe, Diagramm, Prognose), `Me.tsx` (Profil, Ziele, Abmelden).
 
 ## Regeln
 - Vor jedem Commit: `npx tsc --noEmit`, `npm test`, `npm run build`.
@@ -26,6 +29,6 @@ Schemaänderungen immer als neue Datei `supabase/migrations/000N_….sql` (idemp
 
 ## Fahrplan
 - **Etappe 1 (fertig):** Profil + Kalorienziel, Essen per Foto/Text/Favorit/Hand, Gewicht mit Trend und Prognose.
-- **Etappe 2:** Gesundheitswerte – Bauch-/Taillenumfang, Blutdruck + Puls (mit Ampel), Schlaf, Wasser, Schritte, Blutzucker, Laborwerte; Verlaufsdiagramme.
+- **Etappe 2 (fertig):** Gesundheitswerte – Maße, Blutdruck + Puls (Ampel), Schlaf, Wasser, Schritte, Blutzucker, Laborwerte; Verlaufsdiagramme.
 - **Etappe 3:** KI-Coach (Wochenauswertung, Fragen wie „Was passt heute Abend noch?“), Erinnerungen (Push), Serien und Erfolge.
 - **Später:** Uhr-Daten automatisch (z. B. Android-Hülle mit Capacitor + Health Connect über die App „Health Sync“).

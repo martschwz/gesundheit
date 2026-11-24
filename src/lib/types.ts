@@ -45,5 +45,45 @@ export type Favorite = Nutrients & {
   updated_at?: string;
 };
 
-export type Tables = { settings: Settings; weights: Weight; meals: Meal; favorites: Favorite };
+
+/* ---------- Etappe 2: Gesundheitswerte ---------- */
+export type Daily = {
+  owner: string;
+  day: string;
+  water_ml: number;
+  steps: number | null;
+  sleep_hours: number | null;
+  sleep_quality: number | null;
+  updated_at?: string;
+};
+
+export type MeasureKind = "bp" | "glucose" | "waist" | "belly" | "hip" | "bodyfat";
+export type Measurement = {
+  id: string;
+  owner: string;
+  kind: MeasureKind;
+  day: string;
+  time: string; // "HH:MM"
+  v1: number;
+  v2: number | null;
+  v3: number | null;
+  tag: string;
+  note: string;
+  created_at: string;
+  updated_at?: string;
+};
+
+export type Lab = {
+  id: string;
+  owner: string;
+  day: string;
+  name: string;
+  value: number;
+  unit: string;
+  note: string;
+  created_at: string;
+  updated_at?: string;
+};
+
+export type Tables = { settings: Settings; weights: Weight; meals: Meal; favorites: Favorite; daily: Daily; measurements: Measurement; labs: Lab };
 export type TableName = keyof Tables;

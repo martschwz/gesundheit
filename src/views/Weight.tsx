@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ownerId, remove, upsert, useStore } from "../lib/store";
-import { bmi, fmt, forecast, parseNum, type TrendPoint } from "../lib/calc";
+import { bmi, fmt, forecast, parseNum } from "../lib/calc";
+import { LineChart } from "../components/Charts";
 import { dayKey, diffDays, formatDate, formatDay } from "../lib/date";
 import { currentKg, weightPoints } from "../lib/selectors";
 import type { Settings } from "../lib/types";
@@ -61,13 +62,16 @@ export function WeightView({ settings }: { settings: Settings }) {
         </div>
       </section>
 
-      {points.length > 1 && (
+      {points.length > 1 ? (
         <section className="card grid">
           <div className="row"><h3>Verlauf</h3><span className="spacer" /><Seg value={range} options={[["30", "30 Tage"], ["90", "90 Tage"], ["all", "Alles"]]} onChange={setRange} label="Zeitraum" /></div>
-          <Chart points={shown} target={settings.target_weight} />
+          <LineChart label="Gewichtsverlauf" refs={[{ v: settings.target_weight, cls: "r-target" }]} series={[
+            { cls: "s-raw", line: false, points: shown.map((p) => ({ day: p.day, v: p.kg })) },
+            { cls: "s-trend", dots: false, points: shown.map((p) => ({ day: p.day, v: p.trend })) },
+          ]} />
           <div className="row small muted"><span><i className="lg dot-raw" /> Messung</span><span><i className="lg line-trend" /> Trend</span><span><i className="lg line-target" /> Ziel</span></div>
         </section>
-      )}
+      ) : null}
 
       {list.length > 0 && (
         <section className="card grid" style={{ gap: 4 }}>
@@ -94,37 +98,5 @@ function Progress({ start, now, target }: { start: number; now: number; target: 
       <div className="goal big"><i style={{ width: `${share * 100}%` }} /></div>
       <div className="row small muted" style={{ marginTop: 4 }}><span>Start {fmt(start, 1)} kg</span><span className="spacer" /><b className="ink">{fmt(share * 100)} % geschafft</b><span className="spacer" /><span>Ziel {fmt(target, 1)} kg</span></div>
     </div>
-  );
-}
-
-function Chart({ points, target }: { points: TrendPoint[]; target: number }) {
-  if (points.length < 2) return <p className="muted small">Für diesen Zeitraum gibt es noch zu wenige Messungen.</p>;
-  const W = 360, H = 200, L = 30, R = 6, T = 10, B = 22;
-  const first = points[0].day, last = points[points.length - 1].day;
-  const span = Math.max(1, diffDays(first, last));
-  const vals = points.flatMap((p) => [p.kg, p.trend]);
-  let lo = Math.min(...vals), hi = Math.max(...vals);
-  if (target >= lo - 3) lo = Math.min(lo, target);
-  lo = Math.floor(lo - 0.5); hi = Math.ceil(hi + 0.5);
-  const x = (d: string) => L + (diffDays(first, d) / span) * (W - L - R);
-  const y = (kg: number) => T + ((hi - kg) / (hi - lo)) * (H - T - B);
-  const step = hi - lo > 12 ? 5 : hi - lo > 5 ? 2 : 1;
-  const ticks: number[] = [];
-  for (let k = Math.ceil(lo / step) * step; k <= hi; k += step) ticks.push(k);
-  const trendPath = points.map((p, i) => `${i ? "L" : "M"}${x(p.day).toFixed(1)},${y(p.trend).toFixed(1)}`).join(" ");
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="chart" role="img" aria-label={`Gewichtsverlauf von ${formatDate(first)} bis ${formatDate(last)}`}>
-      {ticks.map((k) => (
-        <g key={k}>
-          <line x1={L} x2={W - R} y1={y(k)} y2={y(k)} className="grid-l" />
-          <text x={L - 6} y={y(k) + 4} textAnchor="end" className="axis">{k}</text>
-        </g>
-      ))}
-      {target >= lo && target <= hi && <line x1={L} x2={W - R} y1={y(target)} y2={y(target)} className="target" />}
-      {points.map((p) => <circle key={p.day} cx={x(p.day)} cy={y(p.kg)} r={points.length > 60 ? 1.6 : 2.6} className="raw" />)}
-      <path d={trendPath} className="trend" />
-      <text x={L} y={H - 6} className="axis">{formatDay(first)}</text>
-      <text x={W - R} y={H - 6} textAnchor="end" className="axis">{formatDay(last)}</text>
-    </svg>
   );
 }

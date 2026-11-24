@@ -14,18 +14,20 @@ export type State = {
   authReady: boolean;
   loaded: boolean;
   loadError: string | null;
+  schemaOutdated: boolean; // Datenbank-Update (0002_werte.sql) fehlt noch
   data: Data;
   pending: number;
   online: boolean;
 };
 
-const emptyData = (): Data => ({ settings: [], weights: [], meals: [], favorites: [] });
+const emptyData = (): Data => ({ settings: [], weights: [], meals: [], favorites: [], daily: [], measurements: [], labs: [] });
 
 let state: State = {
   session: null,
   authReady: false,
   loaded: false,
   loadError: null,
+  schemaOutdated: false,
   data: emptyData(),
   pending: 0,
   online: navigator.onLine,
@@ -53,6 +55,9 @@ const PK: { [K in TableName]: (keyof Tables[K])[] } = {
   weights: ["owner", "day"],
   meals: ["id"],
   favorites: ["id"],
+  daily: ["owner", "day"],
+  measurements: ["id"],
+  labs: ["id"],
 };
 function keyOf<K extends TableName>(t: K, row: Partial<Tables[K]>): string {
   return PK[t].map((k) => String(row[k])).join("|");
@@ -122,6 +127,16 @@ export async function flush() {
       set({ pending: outbox.length });
     }
   } catch (e) {
+    // Fehlt eine Tabelle noch (Datenbank-Update nicht ausgeführt), blockiert sie sonst alle anderen Änderungen
+    const code = (e as { code?: string }).code;
+    if ((code === "42P01" || code === "PGRST205") && OPTIONAL_TABLES.includes(outbox[0]?.t)) {
+      const t = outbox[0].t;
+      outbox = outbox.filter((o) => o.t !== t);
+      writeLS(outboxKey(), outbox);
+      set({ pending: outbox.length, schemaOutdated: true });
+      flushing = false;
+      return flush();
+    }
     console.warn("Synchronisation später erneut", e);
     clearTimeout(flushTimer);
     flushTimer = window.setTimeout(flush, 15000);
@@ -160,7 +175,7 @@ export const newId = () => crypto.randomUUID();
 /* ---------- Laden ---------- */
 const TABLES: TableName[] = ["settings", "weights", "meals", "favorites"];
 // Tabellen aus späteren Datenbank-Updates hier eintragen: fehlen sie, läuft die App trotzdem weiter
-const OPTIONAL_TABLES: TableName[] = [];
+const OPTIONAL_TABLES: TableName[] = ["daily", "measurements", "labs"];
 
 async function fetchAll<K extends TableName>(t: K): Promise<Tables[K][]> {
   const out: Tables[K][] = [];
@@ -184,13 +199,15 @@ export async function loadAll() {
     const results = await Promise.all(TABLES.map((t) => fetchAll(t)));
     const data = emptyData();
     TABLES.forEach((t, i) => ((data as Record<TableName, unknown[]>)[t] = results[i]));
+    let schemaOutdated = false;
     for (const t of OPTIONAL_TABLES) {
       try {
         (data as Record<TableName, unknown[]>)[t] = await fetchAll(t);
       } catch {
-        /* Datenbank-Update fehlt noch */
+        schemaOutdated = true; // Datenbank-Update fehlt noch
       }
     }
+    set({ schemaOutdated });
     // Noch nicht hochgeladene Änderungen beibehalten
     for (const op of outbox) {
       const list = data[op.t] as unknown as Record<string, unknown>[];

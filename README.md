@@ -5,6 +5,7 @@ Persönliche App zum Abnehmen und gesund leben.
 - **Essen per Foto:** Mahlzeit fotografieren, die KI (Claude) schätzt Kalorien, Eiweiß, Kohlenhydrate und Fett. Alles lässt sich korrigieren. Geht auch per Text oder von Hand, häufige Mahlzeiten als Favoriten.
 - **Kalorienziel:** wird aus Größe, Alter, Gewicht, Bewegung und Wunschtempo berechnet und passt sich an.
 - **Gewicht:** mit geglätteter Trendlinie, Fortschritt und Prognose („Ziel erreicht voraussichtlich am …“).
+- **Werte:** Wasser, Schritte, Schlaf, Blutdruck mit Puls, Blutzucker, Körpermaße und Laborwerte – mit Ampel und Verlaufsdiagrammen.
 - Läuft im Browser auf dem Handy und lässt sich wie eine App auf den Startbildschirm legen. Funktioniert auch offline (Änderungen werden nachgereicht).
 
 **Adresse:** https://martschwz.github.io/gesundheit/
@@ -17,7 +18,8 @@ Die App nutzt das Supabase-Projekt der Lernapp mit (im kostenlosen Tarif ist kei
 ### 2. Datenbank anlegen
 1. In Supabase links **SQL Editor** → **New query**.
 2. Den kompletten Inhalt von [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) einfügen und auf **Run** klicken.
-3. Es sollte „Success. No rows returned“ erscheinen.
+3. Es sollte „Success. No rows returned“ erscheinen. Fragt Supabase nach „Run and enable RLS“, diesen Knopf wählen.
+4. Danach genauso mit [`supabase/migrations/0002_werte.sql`](supabase/migrations/0002_werte.sql) (Gesundheitswerte).
 
 ### 3. Anmeldung einstellen
 In Supabase unter **Authentication → URL Configuration**:
