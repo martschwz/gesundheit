@@ -11,9 +11,8 @@ Persönliche App zum Abnehmen und gesund leben.
 
 ## Einrichtung (einmalig)
 
-### 1. Supabase-Projekt anlegen
-1. Auf supabase.com einloggen → **New project**. Name z. B. `gesundheit`, Region **Frankfurt (eu-central-1)**, ein Datenbank-Passwort vergeben (wird später nicht gebraucht).
-2. Unter **Project Settings → API Keys** den **Publishable key** kopieren und unter **Project Settings → Data API** die **Project URL**. Beides an Claude schicken – Claude trägt es in `src/config.ts` ein.
+### 1. Supabase-Projekt
+Die App nutzt das Supabase-Projekt der Lernapp mit (im kostenlosen Tarif ist kein zweites Projekt möglich). Die Tabellen heißen anders, und die Daten gehören nur zum eigenen Login.
 
 ### 2. Datenbank anlegen
 1. In Supabase links **SQL Editor** → **New query**.
@@ -22,8 +21,8 @@ Persönliche App zum Abnehmen und gesund leben.
 
 ### 3. Anmeldung einstellen
 In Supabase unter **Authentication → URL Configuration**:
-- **Site URL:** `https://martschwz.github.io/gesundheit/`
-- Bei **Redirect URLs** dieselbe Adresse hinzufügen.
+- **Site URL** bleibt die der Lernapp.
+- Bei **Redirect URLs** `https://martschwz.github.io/gesundheit/` hinzufügen.
 
 ### 4. Veröffentlichung auf GitHub Pages einschalten
 Im GitHub-Projekt unter **Settings → Pages** bei **Source** „**GitHub Actions**“ auswählen. Danach wird die App bei jeder Änderung automatisch neu veröffentlicht.

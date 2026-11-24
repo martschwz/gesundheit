@@ -4,7 +4,7 @@ Persönliche Gesundheits- und Abnehm-App für eine Person (ein Login). Der Nutze
 
 ## Technik
 - React 18 + TypeScript + Vite 6, PWA über `vite-plugin-pwa`. Kein Router: `src/App.tsx` schaltet Ansichten über einen `view`-State.
-- Supabase (Auth mit E-Mail/Passwort, Postgres mit RLS „owner = auth.uid()“). Eigenes Supabase-Projekt, getrennt von der Lernapp. Verbindungsdaten in `src/config.ts`.
+- Supabase (Auth mit E-Mail/Passwort, Postgres mit RLS „owner = auth.uid()“). Nutzt das Supabase-Projekt der Lernapp mit (kostenloser Tarif erlaubt kein weiteres Projekt); eigene Tabellennamen, eigener Login, eigener Auth-`storageKey` (`gesundheit-auth`), damit sich die Apps auf derselben Domain nicht gegenseitig abmelden. Tabellennamen nie mit denen der Lernapp kollidieren lassen. Verbindungsdaten in `src/config.ts`.
 - Hosting: GitHub Pages unter `/gesundheit/` (Workflow `.github/workflows/deploy.yml`, `base` in `vite.config.ts`).
 - KI-Schätzung: Supabase Edge Function `supabase/functions/estimate-meal` ruft die Claude API mit `claude-haiku-5-5` auf (Wunsch des Nutzers wegen der Kosten; Secret `ANTHROPIC_API_KEY`, strukturierte Ausgabe per JSON-Schema). Der Schlüssel darf nie in den Frontend-Code. Fotos werden nicht gespeichert, nur verkleinert zur Schätzung geschickt.
 - Handy des Nutzers: Xiaomi (Android) mit Honor Watch GS Pro über Huawei Health. Uhr-Daten vorerst von Hand; Huawei bietet Web-Apps keinen direkten Zugriff.
