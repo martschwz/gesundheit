@@ -7,6 +7,7 @@ import type { Meal, Settings } from "../lib/types";
 import type { Go } from "../App";
 import { Bar, Confirm, Ring, toast } from "../components/ui";
 import { WaterCard } from "./Values";
+import { streak } from "../lib/achievements";
 
 export function Today({ day, setDay, settings, go }: { day: string; setDay: (d: string) => void; settings: Settings; go: Go }) {
   const allMeals = useStore((s) => s.data.meals);
@@ -30,7 +31,9 @@ export function Today({ day, setDay, settings, go }: { day: string; setDay: (d: 
     <div className="grid narrow">
       <div className="daynav">
         <button className="btn sm" onClick={() => setDay(addDays(day, -1))} aria-label="Tag zurück">‹</button>
-        <h2>{formatDay(day, today)}</h2>
+        <div className="center"><h2>{formatDay(day, today)}</h2>
+          {isToday && (() => { const s = streak(allMeals.map((m) => m.day)); return s.current > 1 ? <button className="streakchip" onClick={() => go("coach")}>🔥 {s.current} Tage am Stück</button> : null; })()}
+        </div>
         <button className="btn sm" onClick={() => setDay(addDays(day, 1))} disabled={day >= today} aria-label="Tag vor">›</button>
       </div>
 

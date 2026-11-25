@@ -29,6 +29,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         navigateFallback: "/gesundheit/index.html",
+        // Benachrichtigungen (Erinnerungen) – siehe public/push-sw.js
+        importScripts: ["push-sw.js"],
       },
     }),
   ],

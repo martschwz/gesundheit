@@ -6,6 +6,7 @@ import { dayKey } from "../lib/date";
 import { currentKg, weightPoints } from "../lib/selectors";
 import type { Settings, Sex } from "../lib/types";
 import { Seg, toast } from "../components/ui";
+import { Reminders } from "./Reminders";
 
 export function ProfileForm({ initial, onSaved }: { initial?: Settings; onSaved?: () => void }) {
   const weights = useStore((s) => s.data.weights);
@@ -117,6 +118,7 @@ export function Me({ settings }: { settings: Settings }) {
           <button className="btn sm" style={{ marginTop: 10 }} onClick={saveOverrides}>Übernehmen</button>
         </details>
       </section>
+      <Reminders />
       <section className="card grid">
         <h2>Deine Angaben</h2>
         <ProfileForm initial={settings} />

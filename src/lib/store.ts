@@ -15,12 +15,13 @@ export type State = {
   loaded: boolean;
   loadError: string | null;
   schemaOutdated: boolean; // Datenbank-Update (0002_werte.sql) fehlt noch
+  missing: TableName[]; // Tabellen, die es in der Datenbank noch nicht gibt
   data: Data;
   pending: number;
   online: boolean;
 };
 
-const emptyData = (): Data => ({ settings: [], weights: [], meals: [], favorites: [], daily: [], measurements: [], labs: [] });
+const emptyData = (): Data => ({ settings: [], weights: [], meals: [], favorites: [], daily: [], measurements: [], labs: [], reminder_settings: [] });
 
 let state: State = {
   session: null,
@@ -28,6 +29,7 @@ let state: State = {
   loaded: false,
   loadError: null,
   schemaOutdated: false,
+  missing: [],
   data: emptyData(),
   pending: 0,
   online: navigator.onLine,
@@ -58,6 +60,7 @@ const PK: { [K in TableName]: (keyof Tables[K])[] } = {
   daily: ["owner", "day"],
   measurements: ["id"],
   labs: ["id"],
+  reminder_settings: ["owner"],
 };
 function keyOf<K extends TableName>(t: K, row: Partial<Tables[K]>): string {
   return PK[t].map((k) => String(row[k])).join("|");
@@ -133,7 +136,8 @@ export async function flush() {
       const t = outbox[0].t;
       outbox = outbox.filter((o) => o.t !== t);
       writeLS(outboxKey(), outbox);
-      set({ pending: outbox.length, schemaOutdated: true });
+      const missing = [...new Set([...state.missing, t])];
+      set({ pending: outbox.length, missing, schemaOutdated: missing.some((x) => WERTE_TABLES.includes(x)) });
       flushing = false;
       return flush();
     }
@@ -175,7 +179,8 @@ export const newId = () => crypto.randomUUID();
 /* ---------- Laden ---------- */
 const TABLES: TableName[] = ["settings", "weights", "meals", "favorites"];
 // Tabellen aus späteren Datenbank-Updates hier eintragen: fehlen sie, läuft die App trotzdem weiter
-const OPTIONAL_TABLES: TableName[] = ["daily", "measurements", "labs"];
+const OPTIONAL_TABLES: TableName[] = ["daily", "measurements", "labs", "reminder_settings"];
+const WERTE_TABLES: TableName[] = ["daily", "measurements", "labs"];
 
 async function fetchAll<K extends TableName>(t: K): Promise<Tables[K][]> {
   const out: Tables[K][] = [];
@@ -199,15 +204,15 @@ export async function loadAll() {
     const results = await Promise.all(TABLES.map((t) => fetchAll(t)));
     const data = emptyData();
     TABLES.forEach((t, i) => ((data as Record<TableName, unknown[]>)[t] = results[i]));
-    let schemaOutdated = false;
+    const missing: TableName[] = [];
     for (const t of OPTIONAL_TABLES) {
       try {
         (data as Record<TableName, unknown[]>)[t] = await fetchAll(t);
       } catch {
-        schemaOutdated = true; // Datenbank-Update fehlt noch
+        missing.push(t); // Datenbank-Update fehlt noch
       }
     }
-    set({ schemaOutdated });
+    set({ missing, schemaOutdated: missing.some((t) => WERTE_TABLES.includes(t)) });
     // Noch nicht hochgeladene Änderungen beibehalten
     for (const op of outbox) {
       const list = data[op.t] as unknown as Record<string, unknown>[];

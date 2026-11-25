@@ -7,11 +7,13 @@ import { Today } from "./views/Today";
 import { MealEditor } from "./views/MealEditor";
 import { WeightView } from "./views/Weight";
 import { Values } from "./views/Values";
+import { Coach } from "./views/Coach";
+import { useAchievementToasts } from "./lib/useAchievementToasts";
 import { Toaster } from "./components/ui";
 import { dayKey } from "./lib/date";
 import type { Meal } from "./lib/types";
 
-export type View = "today" | "add" | "weight" | "werte" | "me";
+export type View = "today" | "add" | "weight" | "werte" | "coach" | "me";
 export type Go = (v: View, opts?: { day?: string; meal?: Meal; mode?: AddMode }) => void;
 export type AddMode = "foto" | "text" | "favorit" | "hand";
 
@@ -28,6 +30,7 @@ export default function App() {
   const [meal, setMeal] = useState<Meal | undefined>();
   const [mode, setMode] = useState<AddMode | undefined>();
   const [nonce, setNonce] = useState(0);
+  useAchievementToasts();
 
   if (!CONFIGURED) return <NotConfigured />;
   if (!authReady) return null;
@@ -42,7 +45,7 @@ export default function App() {
     setNonce((n) => n + 1);
     window.scrollTo(0, 0);
   };
-  const tabs: [View, string][] = [["today", "Heute"], ["weight", "Gewicht"], ["werte", "Werte"], ["me", "Ich"]];
+  const tabs: [View, string][] = [["today", "Heute"], ["weight", "Gewicht"], ["werte", "Werte"], ["coach", "Coach"], ["me", "Ich"]];
 
   return (
     <>
@@ -75,6 +78,7 @@ export default function App() {
             {view === "add" && <MealEditor day={day} meal={meal} initialMode={mode} onDone={() => go("today")} />}
             {view === "weight" && <WeightView settings={settings} />}
             {view === "werte" && <Values settings={settings} />}
+            {view === "coach" && <Coach settings={settings} />}
             {view === "me" && <Me settings={settings} />}
           </div>
         )}

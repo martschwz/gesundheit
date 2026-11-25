@@ -85,5 +85,9 @@ export type Lab = {
   updated_at?: string;
 };
 
-export type Tables = { settings: Settings; weights: Weight; meals: Meal; favorites: Favorite; daily: Daily; measurements: Measurement; labs: Lab };
+/* ---------- Etappe 3: Erinnerungen ---------- */
+export type ReminderItem = { key: string; enabled: boolean; time: string };
+export type ReminderSettings = { owner: string; items: ReminderItem[]; tz: string; updated_at?: string };
+
+export type Tables = { settings: Settings; weights: Weight; meals: Meal; favorites: Favorite; daily: Daily; measurements: Measurement; labs: Lab; reminder_settings: ReminderSettings };
 export type TableName = keyof Tables;
