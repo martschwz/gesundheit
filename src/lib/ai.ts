@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type { FoodItem } from "./types";
+import { functionError } from "./fnError";
 
 /** Bild verkleinern (spart Datenvolumen und Kosten), Ergebnis als Base64-JPEG. */
 async function downscale(file: File, maxSide = 1600): Promise<string> {
@@ -23,12 +24,7 @@ export async function estimateMeal(input: { file?: File | null; text?: string })
   const { data, error } = await supabase.functions.invoke("estimate-meal", {
     body: { image, mediaType: "image/jpeg", text: input.text ?? "" },
   });
-  if (error) {
-    const status = (error as { context?: { status?: number } }).context?.status;
-    if (status === 404) throw new Error("Die KI-Schätzung ist noch nicht eingerichtet (siehe Anleitung, Schritt „KI-Schätzung“).");
-    if (status === 429) throw new Error("Gerade sind zu viele Anfragen unterwegs. Bitte gleich nochmal versuchen.");
-    throw new Error("Das hat nicht geklappt. Versuche es mit einem helleren Foto oder beschreibe die Mahlzeit in Worten.");
-  }
+  if (error) throw await functionError(error, "Die KI-Schätzung", "KI-Schätzung");
   const items = ((data?.items ?? []) as FoodItem[]).map((i) => ({
     name: String(i.name ?? ""),
     amount: String(i.amount ?? ""),

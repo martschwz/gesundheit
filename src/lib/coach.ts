@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import { getState } from "./store";
 import { coachContext } from "./coachContext";
+import { functionError } from "./fnError";
 
 export type ChatMsg = { role: "user" | "assistant"; content: string; at: string };
 
@@ -29,16 +30,7 @@ function context(): string {
 async function call(body: Record<string, unknown>): Promise<string> {
   if (!navigator.onLine) throw new Error("Für den Coach braucht die App Internet.");
   const { data, error } = await supabase.functions.invoke("coach", { body: { ...body, context: context() } });
-  if (error) {
-    const ctx = (error as { context?: Response }).context;
-    const status = ctx?.status;
-    let code = "";
-    try { code = (await ctx?.clone().json())?.error ?? ""; } catch { /* egal */ }
-    if (status === 404) throw new Error("Der Coach ist noch nicht eingerichtet (siehe Anleitung, Schritt „KI-Coach“).");
-    if (code === "missing_api_key" || code === "bad_api_key") throw new Error("Der Coach braucht noch den Anthropic-Schlüssel in Supabase (Secret ANTHROPIC_API_KEY).");
-    if (status === 429) throw new Error("Gerade sind zu viele Anfragen unterwegs. Bitte gleich nochmal versuchen.");
-    throw new Error("Der Coach ist gerade nicht erreichbar. Bitte später nochmal versuchen.");
-  }
+  if (error) throw await functionError(error, "Der Coach", "KI-Coach");
   const text = String(data?.text ?? "").trim();
   if (!text) throw new Error("Der Coach hat keine Antwort geliefert. Bitte nochmal versuchen.");
   return text;

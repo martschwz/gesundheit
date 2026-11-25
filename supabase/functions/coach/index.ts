@@ -83,7 +83,9 @@ Deno.serve(async (req) => {
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return json({ error: "rate_limited" }, 429);
     if (e instanceof Anthropic.AuthenticationError) return json({ error: "bad_api_key" }, 500);
-    if (e instanceof Anthropic.APIError) return json({ error: "api_error", status: e.status }, 502);
-    return json({ error: "unknown" }, 500);
+    // Den Grund mitschicken (z. B. fehlendes Guthaben), damit die App ihn anzeigen kann
+    if (e instanceof Anthropic.APIError) return json({ error: "api_error", status: e.status, detail: String(e.message).slice(0, 300) }, 502);
+    console.error(e);
+    return json({ error: "unknown", detail: String(e).slice(0, 300) }, 500);
   }
 });
