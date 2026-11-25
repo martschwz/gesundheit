@@ -9,7 +9,9 @@ export async function functionError(error: unknown, what: string, setupStep: str
   try { body = (await res?.clone().json()) ?? {}; } catch { /* keine JSON-Antwort */ }
   const detail = (body.detail ?? "").toLowerCase();
 
-  if (!res) return new Error(`${what} ist gerade nicht erreichbar. Prüfe die Internetverbindung. (Technisch: ${e?.name ?? "Netzwerk"})`);
+  if (!res) return new Error(navigator.onLine
+    ? `${what} antwortet nicht. Meist ist die Edge Function in Supabase noch nicht angelegt oder beim Start abgestürzt (siehe Anleitung, Schritt „${setupStep}“). (Technisch: ${e?.name ?? "Netzwerk"})`
+    : `${what} braucht Internet. Prüfe die Verbindung.`);
   if (status === 404) return new Error(`${what} ist noch nicht eingerichtet: In Supabase fehlt die Edge Function (siehe Anleitung, Schritt „${setupStep}“).`);
   if (body.error === "missing_api_key") return new Error("In Supabase fehlt noch der Anthropic-Schlüssel: Edge Functions → Secrets → Name ANTHROPIC_API_KEY.");
   if (body.error === "bad_api_key") return new Error("Der Anthropic-Schlüssel wird nicht akzeptiert. Prüfe das Secret ANTHROPIC_API_KEY in Supabase (vollständig kopiert, ohne Leerzeichen?).");
